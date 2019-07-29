@@ -69,9 +69,9 @@ class BUILD_NET_VGG16:
         self.conv5_3 = self.conv_layer(self.conv5_2, "conv5_3")
         self.pool5 = self.max_pool(self.conv5_3, 'pool5')
 ##-----------------------Build Net Fully connvolutional layers------------------------------------------------------------------------------------
-        W6 = utils.weight_variable([7, 7, 512, 4096],name="W6")  # Create tf weight for the new layer with initial weights with normal random distrubution mean zero and std 0.02
-        b6 = utils.bias_variable([4096], name="b6")  # Create tf biasefor the new layer with initial weights of 0
-        self.conv6 = utils.conv2d_basic(self.pool5 , W6, b6)  # Check the size of this net input is it same as input or is it 1X1
+        self.W6 = utils.weight_variable([7, 7, 512, 4096],name="W6")  # Create tf weight for the new layer with initial weights with normal random distrubution mean zero and std 0.02
+        self.b6 = utils.bias_variable([4096], name="b6")  # Create tf biasefor the new layer with initial weights of 0
+        self.conv6 = utils.conv2d_basic(self.pool5 , self.W6, self.b6)  # Check the size of this net input is it same as input or is it 1X1
         self.relu6 = tf.nn.relu(self.conv6, name="relu6")
         # if FLAGS.debug: utils.add_activation_summary(relu6)
         self.relu_dropout6 = tf.nn.dropout(self.relu6,keep_prob=keep_prob)  # Apply dropout for traning need to be added only for training

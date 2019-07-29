@@ -39,45 +39,43 @@ def Inference():
     ValidReader = Data_Reader.Data_Reader(Image_Dir,  BatchSize=1)
     #-------------------------Load Trained model if you dont have trained model see: Train.py-----------------------------------------------------------------------------------------------------------------------------
 
-    sess = tf.Session() #Start Tensorflow session
+    #sess = tf.Session() #Start Tensorflow session
+    with tf.Session() as sess:
+        print("Setting up Saver...")
+        saver = tf.train.Saver()
 
-    print("Setting up Saver...")
-    saver = tf.train.Saver()
+        sess.run(tf.global_variables_initializer())
+        ckpt = tf.train.get_checkpoint_state(logs_dir)
+        if ckpt and ckpt.model_checkpoint_path: # if train model exist restore it
+            saver.restore(sess, ckpt.model_checkpoint_path)
+            print("Model restored...")
+        else:
+            print("ERROR NO TRAINED MODEL IN: "+ckpt.model_checkpoint_path+" See Train.py for creating train network ")
+            sys.exit()
 
-    sess.run(tf.global_variables_initializer())
-    ckpt = tf.train.get_checkpoint_state(logs_dir)
-    if ckpt and ckpt.model_checkpoint_path: # if train model exist restore it
-        saver.restore(sess, ckpt.model_checkpoint_path)
-        print("Model restored...")
-    else:
-        print("ERROR NO TRAINED MODEL IN: "+ckpt.model_checkpoint_path+" See Train.py for creating train network ")
-        sys.exit()
+    #--------------------Create output directories for predicted label, one folder for each granulairy of label prediciton---------------------------------------------------------------------------------------------------------------------------------------------
 
-#--------------------Create output directories for predicted label, one folder for each granulairy of label prediciton---------------------------------------------------------------------------------------------------------------------------------------------
+        if not os.path.exists(Pred_Dir): os.makedirs(Pred_Dir)
+        if not os.path.exists(Pred_Dir+"/OverLay"): os.makedirs(Pred_Dir+"/OverLay")
+        if not os.path.exists(Pred_Dir + "/Label"): os.makedirs(Pred_Dir + "/Label")
 
-    if not os.path.exists(Pred_Dir): os.makedirs(Pred_Dir)
-    if not os.path.exists(Pred_Dir+"/OverLay"): os.makedirs(Pred_Dir+"/OverLay")
-    if not os.path.exists(Pred_Dir + "/Label"): os.makedirs(Pred_Dir + "/Label")
-
-    
-    print("Running Predictions:")
-    print("Saving output to:" + Pred_Dir)
- #----------------------Go over all images and predict semantic segmentation in various of classes-------------------------------------------------------------
-    fim = 0
-    print("Start Predicting " + str(ValidReader.NumFiles) + " images")
-    while (ValidReader.itr < ValidReader.NumFiles):
-        print(str(fim * 100.0 / ValidReader.NumFiles) + "%")
-        fim += 1
-        # ..................................Load image.......................................................................................
-        FileName=ValidReader.OrderedFiles[ValidReader.itr] #Get input image name
-        Images = ValidReader.ReadNextBatchClean()  # load testing image
-
-        # Predict annotation using net
-        LabelPred = sess.run(Net.Pred, feed_dict={image: Images, keep_prob: 1.0})
-             #------------------------Save predicted labels overlay on images---------------------------------------------------------------------------------------------
-        misc.imsave(Pred_Dir + "/OverLay/"+ FileName+NameEnd  , Overlay.OverLayLabelOnImage(Images[0],LabelPred[0], w)) #Overlay label on image
-        misc.imsave(Pred_Dir + "/Label/" + FileName[:-4] + ".png" + NameEnd, LabelPred[0].astype(np.uint8))
         
+        print("Running Predictions:")
+        print("Saving output to:" + Pred_Dir)
+     #----------------------Go over all images and predict semantic segmentation in various of classes-------------------------------------------------------------
+        fim = 0
+        print("Start Predicting " + str(ValidReader.NumFiles) + " images")
+        while (ValidReader.itr < ValidReader.NumFiles):
+            print(str(fim * 100.0 / ValidReader.NumFiles) + "%")
+            fim += 1
+            # ..................................Load image.......................................................................................
+            FileName=ValidReader.OrderedFiles[ValidReader.itr] #Get input image name
+            Images = ValidReader.ReadNextBatchClean()  # load testing image
+
+            # Predict annotation using net
+            LabelPred = sess.run(Net.Pred, feed_dict={image: Images, keep_prob: 1.0})
+                 #------------------------Save predicted labels overlay on images---------------------------------------------------------------------------------------------
+            misc.imsave(Pred_Dir + "/OverLay/"+ FileName+NameEnd  , Overlay.OverLayLabelOnImage(Images[0],LabelPred[0], w)) #Overlay label on image
+            misc.imsave(Pred_Dir + "/Label/" + FileName[:-4] + ".png" + NameEnd, LabelPred[0].astype(np.uint8))
     return LabelPred[0].astype(np.uint8)
     ##################################################################################################################################################
-print("Finished")
