@@ -1,6 +1,8 @@
 import matplotlib.pyplot
 import cv2
 import numpy as np
+from . import finddaytime
+
 def CropByFCNLabel(Gt,rawimage_path):
     raw = matplotlib.pyplot.imread(rawimage_path)
     (rawy, rawx, c) = raw.shape
@@ -36,6 +38,7 @@ def CropByDaytimetbFCNLabel(Gt, raw):
         
             x,y,w,h = cv2.boundingRect(c)
             cropedRaw = raw[y:y+h, x:x+w]
-            cropedimgs.append(cropedRaw)
+            cropedimg = finddaytime.cropedImg(cropedRaw,(x,y,w,h))
+            cropedimgs.append(cropedimg)
         
     return tuple(cropedimgs)
