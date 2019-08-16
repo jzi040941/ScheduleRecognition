@@ -90,7 +90,7 @@ def Inference(image):
                 draw_caption(draw, b, caption)
 
         detectedschedule = np.delete(detectedschedule, (0), axis=0)
-        print(detectedschedule)
+        return detectedschedule
         #cv2.imwrite(os.path.join("scheduleddetecttest.jpg"), draw, [int(cv2.IMWRITE_PNG_COMPRESSION), 3])
 
 '''
